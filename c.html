@@ -8,44 +8,8 @@
     <meta name="theme-color" content="#000000">
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-        import { 
-            getAuth, 
-            createUserWithEmailAndPassword, 
-            signInWithEmailAndPassword, 
-            onAuthStateChanged, 
-            signOut,
-            sendPasswordResetEmail,
-            sendEmailVerification
-        } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-
-        const firebaseConfig = {
-        apiKey: "AIzaSyCwwvgr5C13QZDWb2Bxa1aFf-57YaYrt1c",
-        authDomain: "chafgptest.firebaseapp.com",
-        databaseURL: "https://chafgptest-default-rtdb.firebaseio.com",
-        projectId: "chafgptest",
-        storageBucket: "chafgptest.firebasestorage.app",
-        messagingSenderId: "853295467331",
-        appId: "1:853295467331:web:ebfd40b69e11db09a3bdf6",
-        measurementId: "G-DDRR5RZE5W"
-        };
-
-
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-        const auth = getAuth(app);
+    <script type="module"> import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"; import { getDatabase, ref, set, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js"; import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail, sendEmailVerification, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"; const firebaseConfig = { apiKey: "AIzaSyCwwvgr5C13QZDWb2Bxa1aFf-57YaYrt1c", authDomain: "chafgptest.firebaseapp.com", databaseURL: "https://chafgptest-default-rtdb.firebaseio.com", projectId: "chafgptest", storageBucket: "chafgptest.firebasestorage.app", messagingSenderId: "853295467331", appId: "1:853295467331:web:ebfd40b69e11db09a3bdf6", measurementId: "G-DDRR5RZE5W" }; const app = initializeApp(firebaseConfig); const db = getDatabase(app); const auth = getAuth(app); window.firebaseApp = { db, auth, ref, set, onValue, remove, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail, sendEmailVerification, updateProfile }; 
         
-        window.firebaseApp = { 
-            db, auth, ref, set, onValue, 
-            createUserWithEmailAndPassword, 
-            signInWithEmailAndPassword, 
-            onAuthStateChanged, 
-            signOut,
-            sendPasswordResetEmail,
-            sendEmailVerification
-        };
     </script>
     
     <style>
@@ -257,19 +221,22 @@
                 msgEl.className = `text-sm text-center mt-4 ${isError ? 'text-red-400' : 'text-[#00f3ff]'}`;
             };
 
-            if (action === 'reset') {
-                if (!email) {
-                    showMessage('Ingresa tu correo electrónico primero.', true);
-                    return;
-                }
-                const { auth, sendPasswordResetEmail } = window.firebaseApp;
-                try {
-                    await sendPasswordResetEmail(auth, email);
-                    showMessage('Correo de recuperación enviado. Revisa tu bandeja de entrada.');
-                } catch (error) {
-                    showMessage(getAuthErrorMessage(error.code), true);
-                }
-                return;
+            if (action === 'register') {
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                
+                // TRUCO MAGICO: Guardar el alias como el "Nombre para mostrar" en Firebase Auth
+                await updateProfile(userCredential.user, {
+                    displayName: aliasInput
+                });
+
+                await sendEmailVerification(userCredential.user);
+                await set(ref(db, `users/${userCredential.user.uid}`), { 
+                    email: email, 
+                    alias: aliasInput, 
+                    createdAt: Date.now() 
+                });
+                showMessage('Cuenta creada. Revisa tu correo para confirmar antes de iniciar sesión.');
+                await auth.signOut();
             }
 
             if (!email || !password) {
