@@ -1,0 +1,15 @@
+{
+  "name": "Root Secret Lab",
+  "short_name": "Root Lab",
+  "start_url": "/c.html",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3062/3062634.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

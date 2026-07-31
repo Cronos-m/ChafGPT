@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Root Super Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { getDatabase, ref, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+        import { 
+            getAuth, 
+            signInWithEmailAndPassword, 
+            onAuthStateChanged, 
+            signOut 
+        } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "TU_API_KEY_AQUI",
+            authDomain: "TU_PROYECTO.firebaseapp.com",
+            databaseURL: "https://TU_PROYECTO-default-rtdb.firebaseio.com",
+            projectId: "TU_PROYECTO",
+            storageBucket: "TU_PROYECTO.appspot.com",
+            messagingSenderId: "TU_ID_AQUI",
+            appId: "TU_APP_ID_AQUI"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const auth = getAuth(app);
+        
+        window.firebaseApp = { db, auth, ref, onValue, remove, signInWithEmailAndPassword, onAuthStateChanged, signOut };
+    </script>
+    
+    <style>
+        body { background-color: #050505; color: #ececec; font-family: system-ui, sans-serif; overflow: hidden; }
+        .bg-orb { position: absolute; border-radius: 50%; filter: blur(80px); z-index: 0; opacity: 0.4; }
+        .orb-1 { top: -10%; left: -10%; width: 50vw; height: 50vw; background: #00f3ff; }
+        .orb-2 { bottom: -10%; right: -10%; width: 60vw; height: 60vw; background: #10a37f; }
+        .glass-panel { background: rgba(20, 20, 20, 0.4); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5); }
+        .neon-input { background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.1); color: white; transition: all 0.3s ease; }
+        .neon-input:focus { outline: none; border-color: #00f3ff; box-shadow: 0 0 10px rgba(0, 243, 255, 0.3); }
+        .neon-btn { background: rgba(16, 163, 127, 0.2); border: 1px solid #10a37f; color: #10a37f; text-shadow: 0 0 5px rgba(16, 163, 127, 0.5); box-shadow: 0 0 10px rgba(16, 163, 127, 0.2); transition: all 0.3s ease; }
+        .neon-btn:hover { background: rgba(16, 163, 127, 0.4); box-shadow: 0 0 20px rgba(16, 163, 127, 0.5); }
+        .neon-title { text-shadow: 0 0 10px rgba(16, 163, 127, 0.5); }
+    </style>
+</head>
+<body class="h-screen flex flex-col relative">
+
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
+
+    <!-- Login Admin -->
+    <div id="admin-login" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
+        <div class="glass-panel p-8 rounded-2xl max-w-md w-full relative z-10">
+            <h2 class="text-3xl font-bold mb-6 text-white text-center neon-title">SUPER ADMIN</h2>
+            <div class="space-y-4">
+                <input type="email" id="admin-email" placeholder="Correo de Administrador" class="neon-input w-full px-4 py-3 rounded-lg">
+                <input type="password" id="admin-password" placeholder="Contraseña" class="neon-input w-full px-4 py-3 rounded-lg">
+                <button onclick="loginAdmin()" class="neon-btn w-full font-bold py-3 rounded-lg mt-4">Acceder al Panel</button>
+                <p id="login-error" class="text-red-400 text-sm text-center hidden"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Acceso Denegado -->
+    <div id="access-denied" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
+        <div class="glass-panel p-8 rounded-2xl max-w-md w-full text-center relative z-10">
+            <h2 class="text-2xl font-bold text-red-500 mb-4">Acceso Denegado</h2>
+            <p class="text-gray-400 mb-6">No tienes permisos de Super Administrador.</p>
+            <button onclick="logoutAdmin()" class="neon-btn px-6 py-2 rounded-lg">Salir</button>
+        </div>
+    </div>
+
+    <!-- Panel Principal -->
+    <div id="admin-panel" class="hidden flex-1 flex flex-col relative z-10">
+        <header class="px-6 py-4 border-b border-white/10 backdrop-blur-md bg-black/20 flex justify-between items-center">
+            <h1 class="text-xl font-bold text-white neon-title">Panel de Control Root</h1>
+            <button onclick="logoutAdmin()" class="text-sm text-red-400 hover:text-red-300">Cerrar Sesión</button>
+        </header>
+
+        <div class="flex-1 overflow-y-auto p-6 max-w-6xl mx-auto w-full">
+            <h2 class="text-lg font-semibold mb-4 text-white">Usuarios Registrados</h2>
+            <div class="glass-panel rounded-xl overflow-hidden">
+                <table class="w-full text-left">
+                    <thead class="bg-black/40 text-gray-400 text-sm uppercase">
+                        <tr>
+                            <th class="px-6 py-3">Alias (Mago)</th>
+                            <th class="px-6 py-3">Correo Electrónico</th>
+                            <th class="px-6 py-3">UID</th>
+                            <th class="px-6 py-3 text-right">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-table-body" class="divide-y divide-white/10 text-sm">
+                        <tr><td colspan="4" class="px-6 py-4 text-center text-gray-500">Cargando usuarios...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // CONFIGURACIÓN DE SEGURIDAD: Solo este correo podrá entrar
+        const SUPER_ADMIN_EMAIL = 'tu_correo_aqui@ejemplo.com'; // CAMBIA ESTO POR TU CORREO REAL
+
+        let currentUsers = {};
+
+        window.addEventListener('load', () => {
+            const { auth, onAuthStateChanged } = window.firebaseApp;
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    if (user.email === SUPER_ADMIN_EMAIL) {
+                        showPanel();
+                    } else {
+                        showDenied();
+                    }
+                } else {
+                    showLogin();
+                }
+            });
+        });
+
+        async function loginAdmin() {
+            const email = document.getElementById('admin-email').value.trim();
+            const password = document.getElementById('admin-password').value.trim();
+            const errorEl = document.getElementById('login-error');
+            errorEl.classList.add('hidden');
+
+            const { auth, signInWithEmailAndPassword } = window.firebaseApp;
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+            } catch (error) {
+                errorEl.textContent = 'Credenciales inválidas o error de autenticación.';
+                errorEl.classList.remove('hidden');
+            }
+        }
+
+        function showLogin() {
+            document.getElementById('admin-login').classList.remove('hidden');
+            document.getElementById('access-denied').classList.add('hidden');
+            document.getElementById('admin-panel').classList.add('hidden');
+        }
+
+        function showDenied() {
+            document.getElementById('admin-login').classList.add('hidden');
+            document.getElementById('access-denied').classList.remove('hidden');
+            document.getElementById('admin-panel').classList.add('hidden');
+        }
+
+        function showPanel() {
+            document.getElementById('admin-login').classList.add('hidden');
+            document.getElementById('access-denied').classList.add('hidden');
+            document.getElementById('admin-panel').classList.remove('hidden');
+            loadUsers();
+        }
+
+        function loadUsers() {
+            const { db, ref, onValue } = window.firebaseApp;
+            const dbRef = ref(db, 'users');
+            onValue(dbRef, (snapshot) => {
+                currentUsers = snapshot.val() || {};
+                renderUsers();
+            });
+        }
+
+        function renderUsers() {
+            const tbody = document.getElementById('users-table-body');
+            tbody.innerHTML = '';
+            const usersArray = Object.entries(currentUsers);
+
+            if (usersArray.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500">No hay usuarios registrados.</td></tr>';
+                return;
+            }
+
+            usersArray.forEach(([uid, data]) => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-white/5 transition-colors';
+                tr.innerHTML = `
+                    <td class="px-6 py-4 text-[#10a37f] font-mono">${data.alias || 'Sin alias'}</td>
+                    <td class="px-6 py-4 text-gray-300">${data.email}</td>
+                    <td class="px-6 py-4 text-gray-500 font-mono text-xs">${uid.substring(0, 10)}...</td>
+                    <td class="px-6 py-4 text-right">
+                        <button onclick="deleteUser('${uid}')" class="text-red-400 hover:text-red-300 text-xs border border-red-900/50 px-2 py-1 rounded">Eliminar</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        async function deleteUser(uid) {
+            if (!confirm('¿Eliminar este usuario de la base de datos? (Nota: Esto no borra su cuenta de Firebase Auth, solo sus datos de perfil)')) return;
+            const { db, ref, remove } = window.firebaseApp;
+            await remove(ref(db, `users/${uid}`));
+        }
+
+        function logoutAdmin() {
+            const { auth, signOut } = window.firebaseApp;
+            signOut(auth);
+        }
+    </script>
+</body>
+</html>

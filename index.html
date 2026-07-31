@@ -3,10 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RootGPT - El Grimorio de Cronos</title>
-    
+    <title>RootGPT - El Grimorio</title>
     <script src="https://cdn.tailwindcss.com"></script>
     
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+    // TODO: Add SDKs for Firebase products that you want to use
+    // https://firebase.google.com/docs/web/setup#available-libraries
+
+    // Your web app's Firebase configuration
+    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+    const firebaseConfig = {
+    apiKey: "AIzaSyCwwvgr5C13QZDWb2Bxa1aFf-57YaYrt1c",
+    authDomain: "chafgptest.firebaseapp.com",
+    databaseURL: "https://chafgptest-default-rtdb.firebaseio.com",
+    projectId: "chafgptest",
+    storageBucket: "chafgptest.firebasestorage.app",
+    messagingSenderId: "853295467331",
+    appId: "1:853295467331:web:ebfd40b69e11db09a3bdf6",
+    measurementId: "G-DDRR5RZE5W"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+    </script>
+
     <script>
         tailwind.config = {
             theme: {
@@ -15,12 +42,9 @@
                         'cgp-black': '#000000',
                         'cgp-sidebar': '#000000',
                         'cgp-input': '#2f2f2f',
-                        'cgp-input-hover': '#3a3a3a',
                         'cgp-text': '#ececec',
                         'cgp-text-secondary': '#b4b4b4',
                         'cgp-border': '#424242',
-                        'cgp-button-gray': '#2f2f2f',
-                        'cgp-button-blue': '#10a37f',
                     },
                     fontFamily: {
                         'sans': ['Inter', 'system-ui', 'sans-serif'], 
@@ -37,26 +61,14 @@
         ::-webkit-scrollbar-thumb { background: #424242; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #555; }
         
-        .typing-dot {
-            animation: typingBounce 1.4s infinite ease-in-out both;
-        }
+        .typing-dot { animation: typingBounce 1.4s infinite ease-in-out both; }
         .typing-dot:nth-child(1) { animation-delay: -0.32s; }
         .typing-dot:nth-child(2) { animation-delay: -0.16s; }
-        @keyframes typingBounce {
-            0%, 80%, 100% { transform: scale(0); }
-            40% { transform: scale(1); }
-        }
+        @keyframes typingBounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
         
-        /* Línea gris superior (invisible por defecto) */
-        #force-indicator-line {
-            transition: opacity 0.3s ease;
-            opacity: 0;
-        }
-        #force-indicator-line.active {
-            opacity: 1;
-        }
+        #force-indicator-line { transition: opacity 0.3s ease; opacity: 0; }
+        #force-indicator-line.active { opacity: 1; }
         
-        /* Teclas del panel invisible - APENAS VISIBLES */
         .invisible-key {
             background: rgba(47, 47, 47, 0.3);
             border: 1px solid rgba(66, 66, 66, 0.5);
@@ -68,17 +80,9 @@
             font-size: 1.5rem;
             font-weight: 300;
         }
-        .invisible-key:hover {
-            background: rgba(47, 47, 47, 0.6);
-            border-color: rgba(66, 66, 66, 0.8);
-            color: rgba(180, 180, 180, 0.4);
-        }
-        .invisible-key:active {
-            background: rgba(47, 47, 47, 0.8);
-            transform: scale(0.95);
-        }
+        .invisible-key:hover { background: rgba(47, 47, 47, 0.6); border-color: rgba(66, 66, 66, 0.8); color: rgba(180, 180, 180, 0.4); }
+        .invisible-key:active { background: rgba(47, 47, 47, 0.8); transform: scale(0.95); }
         
-        /* Botón de confirmación - igualmente apenas visible */
         .confirm-btn {
             background: rgba(16, 163, 127, 0.2);
             border: 1px solid rgba(16, 163, 127, 0.4);
@@ -89,23 +93,16 @@
             border-radius: 8px;
             font-size: 1.2rem;
         }
-        .confirm-btn:hover {
-            background: rgba(16, 163, 127, 0.4);
-            border-color: rgba(16, 163, 127, 0.6);
-            color: rgba(16, 163, 127, 0.5);
-        }
+        .confirm-btn:hover { background: rgba(16, 163, 127, 0.4); border-color: rgba(16, 163, 127, 0.6); color: rgba(16, 163, 127, 0.5); }
     </style>
 </head>
 
 <body class="h-full overflow-hidden">
 
-    <!-- Línea indicadora superior (gris delgada) -->
     <div id="force-indicator-line" class="w-full h-px bg-gray-600 absolute top-0 left-0 z-50"></div>
 
     <div class="flex h-full">
-        
         <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-72 bg-cgp-sidebar flex flex-col h-full transform -translate-x-full md:relative md:translate-x-0 transition-transform duration-300 ease-in-out">
-            
             <div class="flex items-center justify-between px-4 py-3">
                 <div class="flex items-center gap-2">
                     <svg class="md:hidden w-6 h-6 text-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
@@ -113,86 +110,35 @@
                     </svg>
                     <h1 class="hidden md:block text-2xl font-bold text-white">ChatGPT</h1>
                 </div>
-                
                 <div class="flex items-center gap-2">
                     <button class="p-2 rounded-full hover:bg-[#2f2f2f] transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
                     </button>
                     <button onclick="toggleSidebar()" class="md:hidden p-2 rounded-full hover:bg-[#2f2f2f] transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
                     </button>
                 </div>
             </div>
 
             <div class="flex-1 overflow-y-auto px-2 py-2 space-y-1">
                 <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#2f2f2f] transition-colors text-sm font-medium">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
                     Nuevo chat
                 </a>
-                
                 <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#2f2f2f] transition-colors text-sm font-medium">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
                     Imágenes
                 </a>
-                
                 <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#2f2f2f] transition-colors text-sm font-medium">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
                     Complementos
                 </a>
-                
-                <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#2f2f2f] transition-colors text-sm font-medium">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-                    Investigar a fondo
-                </a>
-
                 <div class="border-t border-[#2f2f2f] my-3"></div>
-
-                <a href="#" class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-[#2f2f2f] transition-colors text-sm font-medium">
-                    <div class="flex items-center gap-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-                        Ver planes y precio
-                    </div>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7"/><path d="M7 7h10v10"/></svg>
-                </a>
-
-                <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#2f2f2f] transition-colors text-sm font-medium">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-                    Configuración
-                </a>
-
-                <a href="#" class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-[#2f2f2f] transition-colors text-sm font-medium">
-                    <div class="flex items-center gap-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                        Ayuda
-                    </div>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7"/><path d="M7 7h10v10"/></svg>
-                </a>
-
-                <div class="border-t border-[#2f2f2f] my-3"></div>
-
                 <div class="px-3 py-4">
-                    <h3 class="text-base font-semibold text-white mb-2">Obtén respuestas personalizadas para ti</h3>
-                    <p class="text-sm text-cgp-text-secondary mb-4">
-                        Inicia sesión para obtener respuestas basadas en chats guardados además de crear imágenes y cargar archivos.
-                    </p>
-                    <button class="w-full bg-[#2f2f2f] hover:bg-[#3a3a3a] text-white font-medium py-3 rounded-lg transition-colors mb-2">
-                        Iniciar sesión
-                    </button>
-                    <button class="w-full bg-transparent border border-[#424242] hover:bg-[#2f2f2f] text-white font-medium py-3 rounded-lg transition-colors">
-                        Regístrate gratis
-                    </button>
-                </div>
-            </div>
-
-            <div class="p-2 border-t border-[#2f2f2f]">
-                <div class="flex items-center justify-between">
-                    <button class="flex items-center gap-2 px-4 py-2 bg-[#10a37f] hover:bg-[#0d8c6d] text-white font-medium rounded-lg transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-                        Chat
-                    </button>
-                    <button class="p-2 rounded-full hover:bg-[#2f2f2f] transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-                    </button>
+                    <h3 class="text-base font-semibold text-white mb-2">Obtén respuestas personalizadas</h3>
+                    <p class="text-sm text-cgp-text-secondary mb-4">Inicia sesión para obtener respuestas basadas en chats guardados.</p>
+                    <button class="w-full bg-[#2f2f2f] hover:bg-[#3a3a3a] text-white font-medium py-3 rounded-lg transition-colors mb-2">Iniciar sesión</button>
+                    <button class="w-full bg-transparent border border-[#424242] hover:bg-[#2f2f2f] text-white font-medium py-3 rounded-lg transition-colors">Regístrate gratis</button>
                 </div>
             </div>
         </aside>
@@ -200,27 +146,19 @@
         <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden md:hidden" onclick="toggleSidebar()"></div>
 
         <main class="flex-1 flex flex-col h-full bg-cgp-black relative">
-            
             <header class="flex items-center justify-between px-4 py-3 md:hidden">
                 <button onclick="toggleSidebar()" class="p-2 rounded-full hover:bg-[#2f2f2f] transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
                 </button>
                 <div class="flex items-center gap-2">
-                    <button class="px-4 py-2 bg-white text-black font-medium rounded-full text-sm hover:bg-gray-200 transition-colors">
-                        Iniciar sesión
-                    </button>
-                    <button class="px-4 py-2 bg-transparent border border-[#424242] text-white font-medium rounded-full text-sm hover:bg-[#2f2f2f] transition-colors">
-                        Regístrate gratis
-                    </button>
+                    <button class="px-4 py-2 bg-white text-black font-medium rounded-full text-sm hover:bg-gray-200 transition-colors">Iniciar sesión</button>
                 </div>
             </header>
 
             <div id="chat-container" class="flex-1 overflow-y-auto px-4 py-4">
-                
                 <div id="welcome-screen" class="h-full flex flex-col items-center justify-center">
                     <h1 class="text-3xl md:text-4xl font-semibold text-white mb-8">¿Por dónde empezamos?</h1>
                 </div>
-                
                 <div id="messages-area" class="max-w-3xl mx-auto space-y-6 hidden"></div>
             </div>
 
@@ -229,58 +167,42 @@
                     <div class="relative bg-cgp-input rounded-3xl border border-[#424242] focus-within:border-[#555] transition-colors">
                         <div class="flex items-center px-4 py-3">
                             <button class="p-2 rounded-full hover:bg-[#3a3a3a] transition-colors text-cgp-text-secondary mr-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                             </button>
-                            
-                            <textarea 
-                                id="user-input"
-                                rows="1" 
-                                placeholder="Preguntar lo que quieras" 
-                                class="flex-1 bg-transparent text-cgp-text placeholder-cgp-text-secondary resize-none focus:outline-none text-base max-h-40"
-                                onkeydown="handleKeyDown(event)"
-                            ></textarea>
-                            
+                            <textarea id="user-input" rows="1" placeholder="Preguntar lo que quieras" class="flex-1 bg-transparent text-cgp-text placeholder-cgp-text-secondary resize-none focus:outline-none text-base max-h-40" onkeydown="handleKeyDown(event)"></textarea>
                             <button class="p-2 rounded-full hover:bg-[#3a3a3a] transition-colors text-cgp-text-secondary mx-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
                             </button>
-                            
                             <button onclick="sendMessage()" id="send-btn" class="p-2 rounded-full bg-white text-black hover:bg-gray-200 transition-colors">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
                             </button>
                         </div>
                     </div>
-                    
                     <div class="flex justify-center mt-4">
                         <button ondblclick="resetForceMode()" id="what-can-you-do-btn" class="px-4 py-2 bg-[#2f2f2f] hover:bg-[#3a3a3a] text-white text-sm font-medium rounded-full transition-colors cursor-pointer">
                             ¿Qué puedes hacer?
                         </button>
                     </div>
-                    
                     <p class="text-center text-xs text-cgp-text-secondary mt-4 px-4" id="footer-text">
-                        ChatGPT es IA. Al usarlo, aceptas los <a href="#" class="underline hover:text-white">Términos</a> y la <a href="#" class="underline hover:text-white">Política de privacidad</a>. Los chats pueden revisarse y usarse para mejorar nuestros modelos de IA. <a href="#" class="underline hover:text-white">Más información</a>
+                        ChatGPT es IA. Al usarlo, aceptas los <a href="#" class="underline hover:text-white">Términos</a> y la <a href="#" class="underline hover:text-white">Política de privacidad</a>.
                     </p>
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- PANEL INVISIBLE CENTRADO (Teclado Numérico 3x4) -->
     <div id="invisible-panel" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black bg-opacity-20">
         <div class="max-w-sm mx-auto">
             <div class="grid grid-cols-3 gap-3 p-6 bg-black bg-opacity-40 rounded-2xl border border-gray-800">
-                <!-- Fila 1 -->
                 <button class="invisible-key h-14 w-14" data-key="1">1</button>
                 <button class="invisible-key h-14 w-14" data-key="2">2</button>
                 <button class="invisible-key h-14 w-14" data-key="3">3</button>
-                <!-- Fila 2 -->
                 <button class="invisible-key h-14 w-14" data-key="4">4</button>
                 <button class="invisible-key h-14 w-14" data-key="5">5</button>
                 <button class="invisible-key h-14 w-14" data-key="6">6</button>
-                <!-- Fila 3 -->
                 <button class="invisible-key h-14 w-14" data-key="7">7</button>
                 <button class="invisible-key h-14 w-14" data-key="8">8</button>
                 <button class="invisible-key h-14 w-14" data-key="9">9</button>
-                <!-- Fila 4 -->
                 <button class="invisible-key h-14 w-14" data-key="C" style="color: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.3);">C</button>
                 <button class="invisible-key h-14 w-14" data-key="0">0</button>
                 <button class="confirm-btn h-14 w-14" data-key="confirm">✓</button>
@@ -290,37 +212,24 @@
     </div>
 
     <script>
-        const GRIMORIO_CONFIG = {
-            systemPrompt: "Eres Root, una asistente mágica y programadora. Hablas con un toque dulce pero eres experta en código. Tu creador es Cronos.",
-            modelName: "RootGPT-4o",
-            typingSpeed: 20
-        };
-
-        const STORAGE_KEY = 'root_forced_list_data';
-        const FORCE_POSITION_KEY = 'root_force_position';
-
-        // Variables de estado
+        const path = window.location.pathname.replace('/', '');
+        const currentMago = path && path !== 'index.html' && path !== 'c.html' ? path.toLowerCase() : 'anonimo';
+        
         let forcePosition = '';
+        let isForceModeActive = false;
+        let magoConfigs = [];
         let sendBtnClickCount = 0;
         let sendBtnClickTimer = null;
-        let isForceModeActive = false;
 
         function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('sidebar-overlay');
-            sidebar.classList.toggle('-translate-x-full');
-            overlay.classList.toggle('hidden');
+            document.getElementById('sidebar').classList.toggle('-translate-x-full');
+            document.getElementById('sidebar-overlay').classList.toggle('hidden');
         }
 
         const userInput = document.getElementById('user-input');
         const chatContainer = document.getElementById('chat-container');
         const messagesArea = document.getElementById('messages-area');
         const welcomeScreen = document.getElementById('welcome-screen');
-        const sendBtn = document.getElementById('send-btn');
-        const invisiblePanel = document.getElementById('invisible-panel');
-        const forceIndicatorLine = document.getElementById('force-indicator-line');
-        const footerText = document.getElementById('footer-text');
-        const originalFooterText = footerText.innerHTML;
 
         userInput.addEventListener('input', function() {
             this.style.height = 'auto';
@@ -334,22 +243,36 @@
             }
         }
 
-        // ==========================================
-        // LÓGICA DEL PANEL INVISIBLE
-        // ==========================================
-        
-        // Doble clic en botón enviar para activar panel
-        sendBtn.addEventListener('click', function(e) {
+        window.addEventListener('load', () => {
+            const { db, ref, onValue } = window.firebaseDb;
+            
+            const dbRef = ref(db, `magos/${currentMago}/listas`);
+            onValue(dbRef, (snapshot) => {
+                const data = snapshot.val();
+                magoConfigs = data ? Object.values(data) : [];
+            });
+
+            const posRef = ref(db, `magos/${currentMago}/posicion`);
+            onValue(posRef, (snapshot) => {
+                forcePosition = snapshot.val() || '';
+                if (forcePosition) {
+                    isForceModeActive = true;
+                    document.getElementById('force-indicator-line').classList.add('active');
+                    document.getElementById('footer-text').innerHTML = `ChatGPT es IA. Al usarlo, aceptas los <a href="#" class="underline hover:text-white">Términos</a> y la <a href="#" class="underline hover:text-white">Política de privacidad (v${forcePosition})</a>.`;
+                } else {
+                    isForceModeActive = false;
+                    document.getElementById('force-indicator-line').classList.remove('active');
+                    document.getElementById('footer-text').innerHTML = `ChatGPT es IA. Al usarlo, aceptas los <a href="#" class="underline hover:text-white">Términos</a> y la <a href="#" class="underline hover:text-white">Política de privacidad</a>.`;
+                }
+            });
+        });
+
+        document.getElementById('send-btn').addEventListener('click', function(e) {
             if (userInput.value.trim() === '') {
                 sendBtnClickCount++;
-                
                 if (sendBtnClickCount === 1) {
-                    // Primer clic
-                    sendBtnClickTimer = setTimeout(() => {
-                        sendBtnClickCount = 0;
-                    }, 300);
+                    sendBtnClickTimer = setTimeout(() => { sendBtnClickCount = 0; }, 300);
                 } else if (sendBtnClickCount === 2) {
-                    // Segundo clic - Activar panel
                     clearTimeout(sendBtnClickTimer);
                     sendBtnClickCount = 0;
                     openInvisiblePanel();
@@ -358,28 +281,24 @@
         });
 
         function openInvisiblePanel() {
-            invisiblePanel.classList.remove('hidden');
+            document.getElementById('invisible-panel').classList.remove('hidden');
             forcePosition = '';
             updatePanelDisplay();
         }
 
-        // Manejar clics en teclas invisibles
         document.querySelectorAll('.invisible-key, .confirm-btn').forEach(key => {
             key.addEventListener('click', function() {
                 const keyValue = this.getAttribute('data-key');
-                
                 if (keyValue === 'C') {
-                    // Clear - Resetear posición
                     forcePosition = '';
                     updatePanelDisplay();
                 } else if (keyValue === 'confirm') {
-                    // Confirmar - Cerrar panel y activar modo forzado
                     if (forcePosition) {
-                        closeInvisiblePanel();
-                        activateForceMode();
+                        const { db, ref, set } = window.firebaseDb;
+                        set(ref(db, `magos/${currentMago}/posicion`), forcePosition);
+                        document.getElementById('invisible-panel').classList.add('hidden');
                     }
                 } else {
-                    // Añadir número
                     if (forcePosition.length < 3) {
                         forcePosition += keyValue;
                         updatePanelDisplay();
@@ -389,7 +308,6 @@
         });
 
         function updatePanelDisplay() {
-            // Actualizar visualización en el panel (apenas visible)
             const display = document.querySelector('.grid').previousElementSibling;
             if (!display) {
                 const disp = document.createElement('div');
@@ -401,52 +319,17 @@
             }
         }
 
-        function closeInvisiblePanel() {
-            invisiblePanel.classList.add('hidden');
-        }
-
-        function activateForceMode() {
-            isForceModeActive = true;
-            forceIndicatorLine.classList.add('active');
-            updateFooterDisplay();
-        }
-
-        function updateFooterDisplay() {
-            if (forcePosition && isForceModeActive) {
-                // Mostrar número en footer reemplazando parte del texto
-                footerText.innerHTML = `ChatGPT es IA. Al usarlo, aceptas los <a href="#" class="underline hover:text-white">Términos</a> y la <a href="#" class="underline hover:text-white">Política de privacidad (v${forcePosition})</a>. Los chats pueden revisarse y usarse para mejorar nuestros modelos de IA. <a href="#" class="underline hover:text-white">Más información</a>`;
-            } else {
-                footerText.innerHTML = originalFooterText;
-            }
-        }
-
-        // ==========================================
-        // RESET COMPLETO
-        // ==========================================
         function resetForceMode() {
-            forcePosition = '';
-            isForceModeActive = false;
-            updateFooterDisplay();
-            invisiblePanel.classList.add('hidden');
-            forceIndicatorLine.classList.remove('active');
-            
-            // Permitir escribir de nuevo normalmente
+            const { db, ref, set } = window.firebaseDb;
+            set(ref(db, `magos/${currentMago}/posicion`), '');
+            document.getElementById('invisible-panel').classList.add('hidden');
             userInput.value = '';
             userInput.focus();
         }
 
-        // ==========================================
-        // LÓGICA DE FUERZA DE LISTA
-        // ==========================================
-        
         function getForcedListConfig(text) {
-            const data = localStorage.getItem(STORAGE_KEY);
-            if (!data) return null;
-            
-            const configs = JSON.parse(data);
             const lowerText = text.toLowerCase();
-            
-            for (const config of configs) {
+            for (const config of magoConfigs) {
                 if (lowerText.includes(config.trigger.toLowerCase())) {
                     return config;
                 }
@@ -456,19 +339,13 @@
 
         function processForcedList(config, position) {
             const pos = parseInt(position, 10);
-            if (isNaN(pos) || pos < 1 || pos > config.list.length) {
-                return config.list; // Si la posición es inválida, devolver lista original
-            }
+            if (isNaN(pos) || pos < 1 || pos > config.list.length) return config.list;
 
-            // Crear copia de la lista
             const newList = [...config.list];
-            
-            // Buscar el item forzado en la lista
             const forcedItemNormalized = config.forcedItem.toLowerCase().trim();
             let originalIndex = -1;
             
             for (let i = 0; i < newList.length; i++) {
-                // Extraer el contenido del item (quitar número y punto)
                 const itemContent = newList[i].replace(/^\d+\.\s*/, '').trim();
                 if (itemContent.toLowerCase() === forcedItemNormalized) {
                     originalIndex = i;
@@ -476,25 +353,15 @@
                 }
             }
             
-            // Si el item existe en la lista, removerlo de su posición original
-            if (originalIndex !== -1) {
-                newList.splice(originalIndex, 1);
-            }
+            if (originalIndex !== -1) newList.splice(originalIndex, 1);
             
-            // Ajustar la posición si el item original estaba antes
             let adjustedPosition = pos - 1;
-            if (originalIndex !== -1 && originalIndex < pos - 1) {
-                adjustedPosition = pos - 2;
-            }
-            
-            // Asegurar que la posición esté dentro de límites
+            if (originalIndex !== -1 && originalIndex < pos - 1) adjustedPosition = pos - 2;
             if (adjustedPosition < 0) adjustedPosition = 0;
             if (adjustedPosition > newList.length) adjustedPosition = newList.length;
             
-            // Insertar el item forzado en la nueva posición
             newList.splice(adjustedPosition, 0, `${pos}. ${config.forcedItem}`);
             
-            // Renumerar la lista
             return newList.map((item, index) => {
                 const content = item.replace(/^\d+\.\s*/, '').trim();
                 return `${index + 1}. ${content}`;
@@ -509,57 +376,33 @@
             messagesArea.classList.remove('hidden');
 
             appendMessage('user', text);
-            
             userInput.value = '';
             userInput.style.height = 'auto';
 
-            // Verificar si hay configuración de fuerza
             const config = getForcedListConfig(text);
             
             if (config && forcePosition && isForceModeActive) {
-                // Hay configuración y posición forzada activa
                 const processedList = processForcedList(config, forcePosition);
-                const responseText = processedList.join('\n');
+                const responseText = `Aquí tienes una lista de ${text}:\n\n${processedList.join('\n')}`;
                 await simulateAIResponse(responseText, true);
-                
-                // Resetear automáticamente después de usar
-                setTimeout(() => {
-                    resetForceMode();
-                }, 1000);
-            } else if (config && (!forcePosition || !isForceModeActive)) {
-                // Hay configuración pero no hay posición forzada activa - mostrar lista normal
-                const responseText = config.list.join('\n');
+                setTimeout(resetForceMode, 1000);
+            } else if (config) {
+                const responseText = `Aquí tienes una lista de ${text}:\n\n${config.list.join('\n')}`;
                 await simulateAIResponse(responseText, true);
             } else {
-                // Respuesta normal simulada
-                await simulateAIResponse(text, false);
+                await simulateAIResponse("Como esta es una demo visual, estoy simulando la respuesta. Configura tus venenos en /" + currentMago, false);
             }
         }
 
         function appendMessage(role, content) {
             const messageDiv = document.createElement('div');
-            messageDiv.className = `flex gap-4 ${role === 'user' ? 'justify-end' : 'justify-start'}`;
-            
             if (role === 'user') {
-                messageDiv.innerHTML = `
-                    <div class="bg-cgp-input rounded-2xl px-4 py-3 max-w-[80%] md:max-w-[70%]">
-                        <p class="text-cgp-text whitespace-pre-wrap break-words">${escapeHTML(content)}</p>
-                    </div>
-                `;
+                messageDiv.className = `flex justify-end mb-6`;
+                messageDiv.innerHTML = `<div class="bg-cgp-input rounded-2xl px-4 py-3 max-w-[80%] md:max-w-[70%]"><p class="text-cgp-text whitespace-pre-wrap break-words">${escapeHTML(content)}</p></div>`;
             } else {
-                messageDiv.innerHTML = `
-                    <div class="flex gap-3 max-w-[80%] md:max-w-[70%]">
-                        <div class="w-8 h-8 rounded-full bg-white flex-shrink-0 flex items-center justify-center mt-1">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="#000"><path d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108..."/></svg>
-                        </div>
-                        <div class="pt-1">
-                            <p class="text-cgp-text font-semibold text-sm mb-1">Root</p>
-                            <p class="text-cgp-text whitespace-pre-wrap break-words ai-response-text font-mono text-sm"></p>
-                        </div>
-                    </div>
-                `;
+                messageDiv.className = `flex justify-start mb-6`;
+                messageDiv.innerHTML = `<div class="max-w-[80%] md:max-w-[85%]"><p class="text-cgp-text whitespace-pre-wrap break-words ai-response-text text-base leading-relaxed"></p></div>`;
             }
-            
             messagesArea.appendChild(messageDiv);
             chatContainer.scrollTop = chatContainer.scrollHeight;
             return messageDiv;
@@ -568,27 +411,14 @@
         async function simulateAIResponse(inputText, isPredefined) {
             const aiMessageDiv = appendMessage('ai', '');
             const textElement = aiMessageDiv.querySelector('.ai-response-text');
-            
-            textElement.innerHTML = `
-                <div class="flex space-x-1 pt-2">
-                    <div class="w-2 h-2 bg-cgp-text-secondary rounded-full typing-dot"></div>
-                    <div class="w-2 h-2 bg-cgp-text-secondary rounded-full typing-dot"></div>
-                    <div class="w-2 h-2 bg-cgp-text-secondary rounded-full typing-dot"></div>
-                </div>
-            `;
-
+            textElement.innerHTML = `<div class="flex space-x-1 pt-2"><div class="w-2 h-2 bg-cgp-text-secondary rounded-full typing-dot"></div><div class="w-2 h-2 bg-cgp-text-secondary rounded-full typing-dot"></div><div class="w-2 h-2 bg-cgp-text-secondary rounded-full typing-dot"></div></div>`;
             await new Promise(resolve => setTimeout(resolve, 800));
-
-            const finalResponse = inputText;
-
             textElement.innerHTML = '';
-            await typeWriter(textElement, finalResponse, GRIMORIO_CONFIG.typingSpeed);
+            await typeWriter(textElement, inputText, 20);
         }
 
         async function typeWriter(element, text, speed) {
-            // Para listas largas, mostrar más rápido
             const actualSpeed = text.includes('\n') ? 5 : speed;
-                
             for (let i = 0; i < text.length; i++) {
                 element.innerHTML += text.charAt(i);
                 chatContainer.scrollTop = chatContainer.scrollHeight;
