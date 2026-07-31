@@ -8,141 +8,89 @@
     <meta name="theme-color" content="#000000">
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <script type="module"> import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"; import { getDatabase, ref, set, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js"; import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail, sendEmailVerification, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"; const firebaseConfig = { apiKey: "AIzaSyCwwvgr5C13QZDWb2Bxa1aFf-57YaYrt1c", authDomain: "chafgptest.firebaseapp.com", databaseURL: "https://chafgptest-default-rtdb.firebaseio.com", projectId: "chafgptest", storageBucket: "chafgptest.firebasestorage.app", messagingSenderId: "853295467331", appId: "1:853295467331:web:ebfd40b69e11db09a3bdf6", measurementId: "G-DDRR5RZE5W" }; const app = initializeApp(firebaseConfig); const db = getDatabase(app); const auth = getAuth(app); window.firebaseApp = { db, auth, ref, set, onValue, remove, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail, sendEmailVerification, updateProfile }; 
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { getDatabase, ref, set, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+        import { 
+            getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, 
+            onAuthStateChanged, signOut, sendPasswordResetEmail, sendEmailVerification,
+            updateProfile 
+        } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCwwvgr5C13QZDWb2Bxa1aFf-57YaYrt1c",
+            authDomain: "chafgptest.firebaseapp.com",
+            databaseURL: "https://chafgptest-default-rtdb.firebaseio.com",
+            projectId: "chafgptest",
+            storageBucket: "chafgptest.firebasestorage.app",
+            messagingSenderId: "853295467331",
+            appId: "1:853295467331:web:ebfd40b69e11db09a3bdf6",
+            measurementId: "G-DDRR5RZE5W"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const auth = getAuth(app);
         
+        window.firebaseApp = { 
+            db, auth, ref, set, onValue, remove,
+            createUserWithEmailAndPassword, signInWithEmailAndPassword, 
+            onAuthStateChanged, signOut, sendPasswordResetEmail, sendEmailVerification,
+            updateProfile
+        };
     </script>
     
     <style>
-        body { 
-            background-color: #050505; 
-            color: #ececec; 
-            font-family: system-ui, sans-serif; 
-            overflow: hidden;
-        }
-
-        /* Fondo con orbes de luz para resaltar el cristal */
-        .bg-orb {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(80px);
-            z-index: 0;
-            opacity: 0.4;
-        }
+        body { background-color: #050505; color: #ececec; font-family: system-ui, sans-serif; overflow: hidden; }
+        .bg-orb { position: absolute; border-radius: 50%; filter: blur(80px); z-index: 0; opacity: 0.4; }
         .orb-1 { top: -10%; left: -10%; width: 50vw; height: 50vw; background: #00f3ff; }
         .orb-2 { bottom: -10%; right: -10%; width: 60vw; height: 60vw; background: #10a37f; }
-
-        /* Estilo Cristal (Glassmorphism) */
-        .glass-panel {
-            background: rgba(20, 20, 20, 0.4);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
-        }
-
-        /* Inputs Neón */
-        .neon-input {
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: white;
-            transition: all 0.3s ease;
-        }
-        .neon-input:focus {
-            outline: none;
-            border-color: #00f3ff;
-            box-shadow: 0 0 10px rgba(0, 243, 255, 0.3), inset 0 0 5px rgba(0, 243, 255, 0.1);
-        }
-
-        /* Botones Neón */
-        .neon-btn-primary {
-            background: rgba(16, 163, 127, 0.2);
-            border: 1px solid #10a37f;
-            color: #10a37f;
-            text-shadow: 0 0 5px rgba(16, 163, 127, 0.5);
-            box-shadow: 0 0 10px rgba(16, 163, 127, 0.2);
-            transition: all 0.3s ease;
-        }
-        .neon-btn-primary:hover {
-            background: rgba(16, 163, 127, 0.4);
-            box-shadow: 0 0 20px rgba(16, 163, 127, 0.5);
-        }
-
-        .neon-btn-secondary {
-            background: transparent;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: #ececec;
-            transition: all 0.3s ease;
-        }
-        .neon-btn-secondary:hover {
-            border-color: #00f3ff;
-            color: #00f3ff;
-            box-shadow: 0 0 10px rgba(0, 243, 255, 0.2);
-        }
-
-        .neon-link {
-            color: #00f3ff;
-            text-shadow: 0 0 5px rgba(0, 243, 255, 0.5);
-            transition: all 0.3s ease;
-        }
-        .neon-link:hover {
-            text-shadow: 0 0 10px rgba(0, 243, 255, 0.8);
-        }
-
-        .neon-title {
-            text-shadow: 0 0 10px rgba(16, 163, 127, 0.5), 0 0 20px rgba(16, 163, 127, 0.3);
-        }
-
-        .loader { 
-            border: 3px solid rgba(255, 255, 255, 0.1); 
-            border-top: 3px solid #10a37f; 
-            border-radius: 50%; 
-            width: 24px; 
-            height: 24px; 
-            animation: spin 1s linear infinite; 
-            margin: 0 auto; 
-        }
+        .glass-panel { background: rgba(20, 20, 20, 0.4); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5); }
+        .neon-input { background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.1); color: white; transition: all 0.3s ease; }
+        .neon-input:focus { outline: none; border-color: #00f3ff; box-shadow: 0 0 10px rgba(0, 243, 255, 0.3), inset 0 0 5px rgba(0, 243, 255, 0.1); }
+        .neon-btn-primary { background: rgba(16, 163, 127, 0.2); border: 1px solid #10a37f; color: #10a37f; text-shadow: 0 0 5px rgba(16, 163, 127, 0.5); box-shadow: 0 0 10px rgba(16, 163, 127, 0.2); transition: all 0.3s ease; }
+        .neon-btn-primary:hover { background: rgba(16, 163, 127, 0.4); box-shadow: 0 0 20px rgba(16, 163, 127, 0.5); }
+        .neon-btn-secondary { background: transparent; border: 1px solid rgba(255, 255, 255, 0.2); color: #ececec; transition: all 0.3s ease; }
+        .neon-btn-secondary:hover { border-color: #00f3ff; color: #00f3ff; box-shadow: 0 0 10px rgba(0, 243, 255, 0.2); }
+        .neon-link { color: #00f3ff; text-shadow: 0 0 5px rgba(0, 243, 255, 0.5); transition: all 0.3s ease; }
+        .neon-link:hover { text-shadow: 0 0 10px rgba(0, 243, 255, 0.8); }
+        .neon-title { text-shadow: 0 0 10px rgba(16, 163, 127, 0.5), 0 0 20px rgba(16, 163, 127, 0.3); }
+        .loader { border: 3px solid rgba(255, 255, 255, 0.1); border-top: 3px solid #10a37f; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; margin: 0 auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body class="h-screen flex flex-col relative">
 
-    <!-- Orbes de fondo -->
     <div class="bg-orb orb-1"></div>
     <div class="bg-orb orb-2"></div>
 
-    <!-- Pantalla de Autenticación -->
     <div id="auth-screen" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
         <div class="glass-panel p-8 rounded-2xl max-w-md w-full relative z-10">
             <h2 class="text-3xl font-bold mb-2 text-white text-center neon-title tracking-wider">ROOT LAB</h2>
             <p class="text-gray-400 mb-8 text-sm text-center">Accede a tu espacio mágico</p>
-            
             <div class="space-y-4">
-                <input type="text" id="alias-input-auth" placeholder="ID Mago" class="neon-input w-full px-4 py-3 rounded-lg lowercase">
+                <input type="text" id="alias-input-auth" placeholder="Nombre de Mago (Ej: cronos)" class="neon-input w-full px-4 py-3 rounded-lg lowercase">
                 <input type="email" id="email-input" placeholder="Correo electrónico" class="neon-input w-full px-4 py-3 rounded-lg">
                 <input type="password" id="password-input" placeholder="Contraseña (mín. 6 caracteres)" class="neon-input w-full px-4 py-3 rounded-lg">
-                
                 <div class="pt-4 space-y-3">
                     <button onclick="handleAuth('login')" class="neon-btn-secondary w-full font-bold py-3 rounded-lg">Iniciar Sesión</button>
                     <button onclick="handleAuth('register')" class="neon-btn-primary w-full font-bold py-3 rounded-lg">Crear Cuenta Nueva</button>
                 </div>
-                
-                <div class="text-center pt-2">
+                <div class="text-center pt-2 flex flex-col gap-2">
                     <button onclick="handleAuth('reset')" class="neon-link text-sm">¿Olvidaste tu contraseña?</button>
+                    <button onclick="handleForgotAlias()" class="neon-link text-sm">¿Olvidaste tu ID de Mago?</button>
                 </div>
-
                 <p id="auth-message" class="text-sm text-center hidden mt-4"></p>
             </div>
         </div>
     </div>
 
-    <!-- Banner de Verificación de Correo -->
     <div id="verify-banner" class="fixed top-0 left-0 right-0 bg-yellow-900/80 backdrop-blur-md text-yellow-200 p-3 text-center text-sm z-40 hidden border-b border-yellow-700">
         <span class="mr-2">Tu correo no está verificado.</span>
         <button onclick="resendVerification()" class="underline font-bold hover:text-white">Reenviar correo</button>
         <button onclick="logout()" class="ml-4 underline font-bold hover:text-white">Salir</button>
     </div>
 
-    <!-- Interfaz Principal del Laboratorio -->
     <div id="lab-interface" class="hidden flex-1 flex flex-col relative z-10">
         <header class="px-6 py-4 border-b border-white/10 backdrop-blur-md bg-black/20 flex justify-between items-center">
             <h1 class="text-xl font-bold text-white neon-title">Hola, <span id="display-mago" class="text-[#10a37f]"></span></h1>
@@ -166,7 +114,7 @@
             <div>
                 <div class="flex justify-between items-center mb-3">
                     <h2 class="text-lg font-semibold text-white">Tus Configuraciones Activas</h2>
-                    <span class="text-xs text-gray-500">URL: tudominio.pages.dev/<span id="url-alias" class="text-[#10a37f] font-mono">...</span></span>
+                    <span class="text-xs text-gray-500">URL: chafgpt.pages.dev/<span id="url-alias" class="text-[#10a37f] font-mono">...</span></span>
                 </div>
                 <div id="configs-list" class="space-y-3">
                     <div class="loader"></div>
@@ -185,14 +133,12 @@
             onAuthStateChanged(auth, (user) => {
                 if (user) {
                     currentUser = user;
-                    // Verificar si el correo está confirmado
                     if (!user.emailVerified) {
                         document.getElementById('verify-banner').classList.remove('hidden');
                         document.getElementById('lab-interface').classList.add('hidden');
                         document.getElementById('auth-screen').classList.add('hidden');
                         return;
                     }
-                    
                     document.getElementById('verify-banner').classList.add('hidden');
                     currentAlias = localStorage.getItem('root_mago_alias') || 'mago';
                     document.getElementById('url-alias').textContent = currentAlias;
@@ -211,9 +157,7 @@
             const password = document.getElementById('password-input').value.trim();
             const aliasInput = document.getElementById('alias-input-auth').value.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
             const msgEl = document.getElementById('auth-message');
-            
             msgEl.classList.add('hidden');
-            msgEl.className = 'text-sm text-center hidden mt-4'; // Reset classes
 
             const showMessage = (text, isError = false) => {
                 msgEl.textContent = text;
@@ -221,48 +165,33 @@
                 msgEl.className = `text-sm text-center mt-4 ${isError ? 'text-red-400' : 'text-[#00f3ff]'}`;
             };
 
-            if (action === 'register') {
-                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                
-                // TRUCO MAGICO: Guardar el alias como el "Nombre para mostrar" en Firebase Auth
-                await updateProfile(userCredential.user, {
-                    displayName: aliasInput
-                });
-
-                await sendEmailVerification(userCredential.user);
-                await set(ref(db, `users/${userCredential.user.uid}`), { 
-                    email: email, 
-                    alias: aliasInput, 
-                    createdAt: Date.now() 
-                });
-                showMessage('Cuenta creada. Revisa tu correo para confirmar antes de iniciar sesión.');
-                await auth.signOut();
-            }
-
-            if (!email || !password) {
-                showMessage('Por favor, ingresa correo y contraseña.', true);
+            if (action === 'reset') {
+                if (!email) { showMessage('Ingresa tu correo electrónico primero.', true); return; }
+                const { auth, sendPasswordResetEmail } = window.firebaseApp;
+                try {
+                    await sendPasswordResetEmail(auth, email);
+                    showMessage('Correo de recuperación enviado. Revisa tu bandeja de entrada.');
+                } catch (error) { showMessage(getAuthErrorMessage(error.code), true); }
                 return;
             }
 
+            if (!email || !password) { showMessage('Por favor, ingresa correo y contraseña.', true); return; }
+
             if (action === 'register') {
-                if (!aliasInput || aliasInput.length < 3) {
-                    showMessage('El nombre de mago debe tener al menos 3 caracteres.', true);
-                    return;
-                }
-                if (password.length < 6) {
-                    showMessage('La contraseña debe tener al menos 6 caracteres.', true);
-                    return;
-                }
+                if (!aliasInput || aliasInput.length < 3) { showMessage('El nombre de mago debe tener al menos 3 caracteres.', true); return; }
+                if (password.length < 6) { showMessage('La contraseña debe tener al menos 6 caracteres.', true); return; }
             }
 
-            const { auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, db, ref, set, sendEmailVerification } = window.firebaseApp;
+            const { auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, db, ref, set, sendEmailVerification, updateProfile } = window.firebaseApp;
 
             try {
                 if (action === 'register') {
                     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                    await updateProfile(userCredential.user, { displayName: aliasInput });
                     await sendEmailVerification(userCredential.user);
-                    showMessage('Cuenta creada. Hemos enviado un correo de confirmación. Por favor, revísalo antes de iniciar sesión.');
-                    await auth.signOut(); // Forzar logout hasta que verifique
+                    await set(ref(db, `users/${userCredential.user.uid}`), { email: email, alias: aliasInput, createdAt: Date.now() });
+                    showMessage('Cuenta creada. Revisa tu correo para confirmar antes de iniciar sesión.');
+                    await auth.signOut();
                 } else {
                     await signInWithEmailAndPassword(auth, email, password);
                     if (!localStorage.getItem('root_mago_alias')) {
@@ -278,10 +207,50 @@
             }
         }
 
+        // NUEVA FUNCIÓN: Recuperar ID de Mago
+        async function handleForgotAlias() {
+            const email = document.getElementById('email-input').value.trim();
+            const msgEl = document.getElementById('auth-message');
+            msgEl.classList.add('hidden');
+
+            const showMessage = (text, isError = false) => {
+                msgEl.textContent = text;
+                msgEl.classList.remove('hidden');
+                msgEl.className = `text-sm text-center mt-4 ${isError ? 'text-red-400' : 'text-[#00f3ff]'}`;
+            };
+
+            if (!email) {
+                showMessage('Por favor, ingresa tu correo electrónico para buscar tu ID.', true);
+                return;
+            }
+
+            const { db, ref, onValue } = window.firebaseApp;
+            const usersRef = ref(db, 'users');
+            
+            // Buscamos en la base de datos el usuario con ese correo
+            onValue(usersRef, (snapshot) => {
+                const usersData = snapshot.val() || {};
+                let foundAlias = null;
+
+                // Recorremos los usuarios para encontrar el correo coincidente
+                for (const uid in usersData) {
+                    if (usersData[uid].email.toLowerCase() === email.toLowerCase()) {
+                        foundAlias = usersData[uid].alias;
+                        break;
+                    }
+                }
+
+                if (foundAlias) {
+                    showMessage(`¡Encontrado! Tu ID de Mago es: ${foundAlias}`, false);
+                } else {
+                    showMessage('No encontramos ningún mago registrado con ese correo.', true);
+                }
+            }, { onlyOnce: true });
+        }
+
         async function resendVerification() {
             if (currentUser) {
-                const { sendEmailVerification } = window.firebaseApp;
-                await sendEmailVerification(currentUser);
+                await window.firebaseApp.sendEmailVerification(currentUser);
                 alert('Correo de verificación reenviado.');
             }
         }
@@ -291,7 +260,6 @@
             if (code === 'auth/user-not-found' || code === 'auth/wrong-password') return 'Correo o contraseña incorrectos.';
             if (code === 'auth/email-already-in-use') return 'Este correo ya está registrado.';
             if (code === 'auth/weak-password') return 'La contraseña debe tener al menos 6 caracteres.';
-            if (code === 'auth/too-many-requests') return 'Demasiados intentos. Intenta más tarde.';
             return 'Ocurrió un error: ' + code;
         }
 
@@ -313,8 +281,7 @@
 
         function loadConfigs() {
             const { db, ref, onValue } = window.firebaseApp;
-            const dbRef = ref(db, `magos/${currentAlias}/listas`);
-            onValue(dbRef, (snapshot) => {
+            onValue(ref(db, `magos/${currentAlias}/listas`), (snapshot) => {
                 const data = snapshot.val();
                 currentConfigs = data ? Object.values(data) : [];
                 renderConfigs();
@@ -325,23 +292,17 @@
             const trigger = document.getElementById('trigger-input').value.trim();
             const forcedItem = document.getElementById('forced-item-input').value.trim();
             const list = document.getElementById('list-input').value.trim();
-
-            if (!trigger || !forcedItem || !list) {
-                alert('Por favor, completa todos los campos.');
-                return;
-            }
+            if (!trigger || !forcedItem || !list) { alert('Por favor, completa todos los campos.'); return; }
 
             const listArray = list.split('\n').map(l => l.trim()).filter(l => l);
             const newConfig = { trigger, forcedItem, list: listArray };
-
             const { db, ref, set } = window.firebaseApp;
+            
             set(ref(db, `magos/${currentAlias}/listas`), [...currentConfigs, newConfig]).then(() => {
                 document.getElementById('trigger-input').value = '';
                 document.getElementById('forced-item-input').value = '';
                 document.getElementById('list-input').value = '';
-            }).catch((error) => {
-                alert('Error al guardar: ' + error.message);
-            });
+            }).catch((error) => alert('Error al guardar: ' + error.message));
         }
 
         function deleteConfig(index) {
