@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Root Secret Lab - Laboratorio de Venenos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'cgp-black': '#000000',
+                        'cgp-input': '#2f2f2f',
+                        'cgp-text': '#ececec',
+                        'cgp-text-secondary': '#b4b4b4',
+                        'cgp-border': '#424242',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #000000; color: #ececec; font-family: system-ui, sans-serif; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #424242; border-radius: 4px; }
+    </style>
+</head>
+<body class="h-screen overflow-hidden flex flex-col">
+
+    <!-- Header -->
+    <header class="px-6 py-4 border-b border-cgp-border flex justify-between items-center bg-cgp-black">
+        <h1 class="text-2xl font-bold text-white">Root Secret Lab</h1>
+        <a href="index.html" class="px-4 py-2 bg-cgp-input hover:bg-[#3a3a3a] text-white rounded-lg transition-colors text-sm">
+            Volver al Chat
+        </a>
+    </header>
+
+    <!-- Contenido Principal -->
+    <div class="flex-1 overflow-y-auto p-6 max-w-5xl mx-auto w-full">
+        
+        <!-- Formulario para añadir/editar veneno forzado -->
+        <div class="bg-cgp-input rounded-xl p-6 mb-8 border border-cgp-border">
+            <h2 class="text-xl font-semibold mb-4 text-white">Configurar Fuerza de Lista</h2>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-cgp-text-secondary mb-2">Palabra clave (Trigger)</label>
+                    <input type="text" id="trigger-input" placeholder="Ej: 100 bebidas" 
+                        class="w-full bg-cgp-black border border-cgp-border rounded-lg px-4 py-2 text-white focus:outline-none focus:border-gray-500">
+                    <p class="text-xs text-cgp-text-secondary mt-1">Si el mensaje contiene este texto, se activará la lista forzada.</p>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-cgp-text-secondary mb-2">Item a Forzar</label>
+                    <input type="text" id="forced-item-input" placeholder="Ej: Vodka" 
+                        class="w-full bg-cgp-black border border-cgp-border rounded-lg px-4 py-2 text-white focus:outline-none focus:border-gray-500">
+                    <p class="text-xs text-cgp-text-secondary mt-1">Este elemento aparecerá en la posición que el usuario elija.</p>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-cgp-text-secondary mb-2">Lista Completa</label>
+                    <textarea id="list-input" rows="12" placeholder="1. Coca-Cola&#10;2. Pepsi&#10;3. Sprite&#10;..." 
+                        class="w-full bg-cgp-black border border-cgp-border rounded-lg px-4 py-2 text-white focus:outline-none focus:border-gray-500 resize-none font-mono text-sm"></textarea>
+                    <p class="text-xs text-cgp-text-secondary mt-1">Pega la lista completa. El sistema limpiará automáticamente el item forzado de su posición original.</p>
+                </div>
+                
+                <div class="flex gap-3">
+                    <button onclick="savePoison()" class="px-6 py-2 bg-white text-black font-medium rounded-lg hover:bg-gray-200 transition-colors">
+                        Guardar Configuración
+                    </button>
+                    <button onclick="clearForm()" class="px-6 py-2 bg-cgp-black border border-cgp-border text-white rounded-lg hover:bg-[#3a3a3a] transition-colors">
+                        Limpiar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lista de Configuraciones Activas -->
+        <div>
+            <h2 class="text-xl font-semibold mb-4 text-white">Configuraciones Activas</h2>
+            <div id="poison-list" class="space-y-3">
+                <!-- Los items se inyectarán aquí vía JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Clave mágica para localStorage
+        const STORAGE_KEY = 'root_forced_list_data';
+        
+        // Variable para tracking de edición
+        let editingIndex = null;
+
+        // Datos base de ejemplo (100 bebidas)
+        const BASE_POISONS = [
+            {
+                trigger: "100 bebidas",
+                forcedItem: "Vodka",
+                list: `1. Coca-Cola
+2. Pepsi
+3. Sprite
+4. Fanta
+5. 7UP
+6. Dr Pepper
+7. Mountain Dew
+8. Mirinda
+9. Schweppes Tónica
+10. Ginger Ale
+11. Espresso
+12. Cappuccino
+13. Latte
+14. Americano
+15. Mocha
+16. Macchiato
+17. Flat White
+18. Café filtrado
+19. Cold Brew
+20. Frappé
+21. Té verde
+22. Té negro
+23. Té chai
+24. Té matcha
+25. Té blanco
+26. Té oolong
+27. Té de jazmín
+28. Té de manzanilla
+29. Té de menta
+30. Té helado
+31. Jugo de naranja
+32. Jugo de manzana
+33. Jugo de uva
+34. Jugo de piña
+35. Jugo de mango
+36. Jugo de sandía
+37. Limonada
+38. Naranjada
+39. Jugo de tomate
+40. Jugo de arándano
+41. Leche
+42. Leche con chocolate
+43. Batido de vainilla
+44. Batido de fresa
+45. Batido de chocolate
+46. Yogur bebible
+47. Kéfir
+48. Lassi
+49. Leche de almendra
+50. Leche de avena
+51. Red Bull
+52. Monster Energy
+53. Rockstar
+54. Prime Hydration
+55. Gatorade
+56. Powerade
+57. Celsius
+58. Lucozade
+59. Pocari Sweat
+60. Aquarius
+61. Lager
+62. Pilsner
+63. IPA
+64. Stout
+65. Porter
+66. Weissbier
+67. Ale
+68. Cerveza sin alcohol
+69. Cerveza artesanal
+70. Radler
+71. Vino tinto
+72. Vino blanco
+73. Vino rosado
+74. Champagne
+75. Prosecco
+76. Cava
+77. Sangría
+78. Oporto
+79. Jerez
+80. Vermut
+81. Whisky
+82. Bourbon
+83. Vodka
+84. Ron
+85. Ginebra
+86. Tequila
+87. Mezcal
+88. Brandy
+89. Cognac
+90. Sake
+91. Mojito
+92. Margarita
+93. Piña Colada
+94. Daiquiri
+95. Martini
+96. Cosmopolitan
+97. Negroni
+98. Old Fashioned
+99. Bloody Mary
+100. Moscow Mule`
+            }
+        ];
+
+        // Obtener configuraciones guardadas
+        function getPoisons() {
+            const data = localStorage.getItem(STORAGE_KEY);
+            return data ? JSON.parse(data) : [];
+        }
+
+        // Guardar configuraciones
+        function savePoisons(poisons) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(poisons));
+            renderPoisons();
+        }
+
+        // Guardar o actualizar configuración
+        function savePoison() {
+            const trigger = document.getElementById('trigger-input').value.trim();
+            const forcedItem = document.getElementById('forced-item-input').value.trim();
+            const list = document.getElementById('list-input').value.trim();
+
+            if (!trigger || !forcedItem || !list) {
+                alert('Por favor, completa todos los campos.');
+                return;
+            }
+
+            // Convertir lista a array
+            const listArray = list.split('\n').map(line => line.trim()).filter(line => line);
+
+            const poisons = getPoisons();
+            const newPoison = { trigger, forcedItem, list: listArray };
+
+            if (editingIndex !== null) {
+                // Modo edición
+                poisons[editingIndex] = newPoison;
+                editingIndex = null;
+            } else {
+                // Modo creación
+                poisons.push(newPoison);
+            }
+
+            savePoisons(poisons);
+            clearForm();
+        }
+
+        // Limpiar formulario
+        function clearForm() {
+            document.getElementById('trigger-input').value = '';
+            document.getElementById('forced-item-input').value = '';
+            document.getElementById('list-input').value = '';
+            editingIndex = null;
+        }
+
+        // Editar configuración existente
+        function editPoison(index) {
+            const poisons = getPoisons();
+            const poison = poisons[index];
+            
+            document.getElementById('trigger-input').value = poison.trigger;
+            document.getElementById('forced-item-input').value = poison.forcedItem;
+            document.getElementById('list-input').value = poison.list.join('\n');
+            editingIndex = index;
+            
+            // Scroll al formulario
+            document.querySelector('.bg-cgp-input').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Eliminar configuración
+        function deletePoison(index) {
+            if (confirm('¿Eliminar esta configuración?')) {
+                const poisons = getPoisons();
+                poisons.splice(index, 1);
+                savePoisons(poisons);
+                if (editingIndex === index) {
+                    clearForm();
+                }
+            }
+        }
+
+        // Renderizar lista en UI
+        function renderPoisons() {
+            const list = document.getElementById('poison-list');
+            const poisons = getPoisons();
+            
+            list.innerHTML = '';
+            
+            if (poisons.length === 0) {
+                list.innerHTML = '<p class="text-cgp-text-secondary text-center py-8">No hay configuraciones activas. Crea una arriba.</p>';
+                return;
+            }
+
+            poisons.forEach((poison, index) => {
+                const item = document.createElement('div');
+                item.className = 'bg-cgp-input rounded-lg p-4 border border-cgp-border';
+                item.innerHTML = `
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="px-2 py-1 bg-cgp-black rounded text-xs font-mono text-cgp-text-secondary">Trigger:</span>
+                                <span class="font-semibold text-white">${escapeHTML(poison.trigger)}</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="px-2 py-1 bg-cgp-black rounded text-xs font-mono text-cgp-text-secondary">Item a forzar:</span>
+                                <span class="text-cgp-text">${escapeHTML(poison.forcedItem)}</span>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="editPoison(${index})" class="px-3 py-1 bg-blue-900/50 hover:bg-blue-900 text-blue-200 rounded text-sm transition-colors">
+                                Editar
+                            </button>
+                            <button onclick="deletePoison(${index})" class="px-3 py-1 bg-red-900/50 hover:bg-red-900 text-red-200 rounded text-sm transition-colors">
+                                Eliminar
+                            </button>
+                        </div>
+                    </div>
+                    <p class="text-xs text-cgp-text-secondary">Total de items: ${poison.list.length}</p>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        // Seguridad XSS
+        function escapeHTML(str) {
+            const div = document.createElement('div');
+            div.appendChild(document.createTextNode(str));
+            return div.innerHTML;
+        }
+
+        // Inicializar
+        renderPoisons();
+    </script>
+</body>
+</html>

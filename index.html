@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RootGPT - El Grimorio de Cronos</title>
+    
+    <!-- ========================================== -->
+    <!-- 🎨 PASO 1: ESTILOS Y CONFIGURACIÓN VISUAL  -->
+    <!-- ========================================== -->
+    <!-- Tailwind CSS para los estilos rápidos y precisos -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Configuración de Tailwind para replicar los colores exactos de ChatGPT -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'cgp-sidebar': '#171717',      // Fondo de la barra lateral
+                        'cgp-main': '#212121',         // Fondo del área principal
+                        'cgp-input': '#2f2f2f',        // Fondo de la caja de texto y burbujas de usuario
+                        'cgp-text': '#ececec',         // Texto principal
+                        'cgp-text-secondary': '#b4b4b4', // Texto secundario / placeholders
+                        'cgp-border': '#424242',       // Bordes sutiles
+                    },
+                    fontFamily: {
+                        // ChatGPT usa "Söhne" (propietaria). Usamos "Inter" como alternativa visual idéntica.
+                        'sans': ['Inter', 'system-ui', 'sans-serif'], 
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        /* Ajustes mágicos para scrollbars y comportamiento global */
+        body { background-color: #212121; color: #ececec; font-family: 'Inter', system-ui, sans-serif; }
+        
+        /* Scrollbar personalizado para que no rompa la estética oscura */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #424242; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #555; }
+        
+        /* Animación de los tres puntitos cuando la IA está "pensando" */
+        .typing-dot {
+            animation: typingBounce 1.4s infinite ease-in-out both;
+        }
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes typingBounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+    </style>
+</head>
+
+<!-- Bloqueamos el scroll del body para que solo scrollee el chat -->
+<body class="h-full overflow-hidden">
+
+    <!-- ========================================== -->
+    <!-- 🏗️ PASO 2: ESTRUCTURA PRINCIPAL (LAYOUT)   -->
+    <!-- ========================================== -->
+    <div class="flex h-full">
+        
+        <!-- ========================================== -->
+        <!-- 📚 PASO 3: BARRA LATERAL (RESPONSIVE)      -->
+        <!-- ========================================== -->
+        <!-- 
+          Documentación para terceros:
+          - 'fixed inset-y-0 left-0 z-50': La hacemos fija en móvil, ocupando toda la altura.
+          - '-translate-x-full': La ocultamos fuera de la pantalla en móvil.
+          - 'md:relative md:translate-x-0': En pantallas medianas (desktop), la mostramos en su lugar.
+          - 'transition-transform': Suavizamos la entrada y salida.
+        -->
+        <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-cgp-sidebar flex flex-col h-full border-r border-cgp-border transform -translate-x-full md:relative md:translate-x-0 transition-transform duration-300 ease-in-out">
+            
+            <!-- Botón Nuevo Chat -->
+            <div class="p-2">
+                <button class="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-[#2f2f2f] transition-colors text-sm font-medium">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                    Nuevo chat
+                </button>
+            </div>
+
+            <!-- Historial de Chats -->
+            <div class="flex-1 overflow-y-auto px-2 py-2 space-y-1">
+                <p class="px-3 py-2 text-xs font-semibold text-cgp-text-secondary uppercase tracking-wider">Hoy</p>
+                <a href="#" class="block px-3 py-2 rounded-lg bg-[#2f2f2f] text-sm truncate">Clon visual de ChatGPT</a>
+                <a href="#" class="block px-3 py-2 rounded-lg hover:bg-[#2f2f2f] text-sm truncate text-cgp-text-secondary">Ideas para hechizos</a>
+                
+                <p class="px-3 py-2 mt-4 text-xs font-semibold text-cgp-text-secondary uppercase tracking-wider">Ayer</p>
+                <a href="#" class="block px-3 py-2 rounded-lg hover:bg-[#2f2f2f] text-sm truncate text-cgp-text-secondary">Historia de la magia</a>
+            </div>
+
+            <!-- Perfil de Usuario (Abajo) -->
+            <div class="p-2 border-t border-cgp-border">
+                <button class="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#2f2f2f] transition-colors">
+                    <div class="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-white font-bold text-sm">C</div>
+                    <span class="text-sm font-medium">Cronos</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Overlay oscuro para cerrar el sidebar al hacer clic fuera (Solo móvil) -->
+        <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden md:hidden" onclick="toggleSidebar()"></div>
+
+        <!-- ========================================== -->
+        <!-- 🏛️ PASO 4: ÁREA PRINCIPAL DEL CHAT         -->
+        <!-- ========================================== -->
+        <main class="flex-1 flex flex-col h-full bg-cgp-main relative">
+            
+            <!-- Header Superior -->
+            <header class="flex items-center justify-between px-4 py-3 border-b border-transparent">
+                <div class="flex items-center gap-2">
+                    <!-- Botón Hamburguesa (Solo visible en móvil para abrir el sidebar) -->
+                    <button onclick="toggleSidebar()" class="md:hidden p-2 rounded-lg hover:bg-[#2f2f2f] transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                    </button>
+                    <!-- Selector de Modelo -->
+                    <button class="flex items-center gap-1 px-3 py-1.5 rounded-lg hover:bg-[#2f2f2f] transition-colors">
+                        <span class="text-lg font-semibold">RootGPT</span>
+                        <span class="text-lg font-semibold text-cgp-text-secondary">4o</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-cgp-text-secondary"><path d="m6 9 6 6 6-6"/></svg>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Contenedor de Mensajes (Scrolleable) -->
+            <div id="chat-container" class="flex-1 overflow-y-auto px-4 py-4">
+                
+                <!-- Estado vacío inicial (Pantalla de Bienvenida) -->
+                <div id="welcome-screen" class="h-full flex flex-col items-center justify-center">
+                    <div class="w-12 h-12 rounded-full bg-white flex items-center justify-center mb-6 shadow-lg">
+                        <!-- Logo de OpenAI (Simplificado) -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="#212121"><path d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4944zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1408-1.6464zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1685a.0757.0757 0 0 1-.071 0l-4.8303-2.7865A4.504 4.504 0 0 1 2.3408 7.8956zm16.5963 3.8558L13.1038 8.364 15.1192 7.2a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0 0-.407-.667zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.409 9.2297V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7866a4.5 4.5 0 0 1 6.6802 4.66zM8.3065 12.863l-2.02-1.1638a.0804.0804 0 0 1-.038-.0567V6.0742a4.5 4.5 0 0 1 7.3757-3.4537l-.142.0805L8.704 5.459a.7948.7948 0 0 0-.3927.6813zm1.0974-2.3616l2.602-1.4998 2.6069 1.4998v2.9994l-2.5974 1.4997-2.6067-1.4997Z"/></svg>
+                    </div>
+                    <h1 class="text-2xl font-semibold mb-8">¿En qué puedo ayudarte hoy, Cronos?</h1>
+                </div>
+                
+                <!-- Área donde se inyectarán los mensajes dinámicamente -->
+                <div id="messages-area" class="max-w-3xl mx-auto space-y-6 hidden"></div>
+            </div>
+
+            <!-- ========================================== -->
+            <!-- 🏺 PASO 5: CAJA DE TEXTO (EL CALIZ)        -->
+            <!-- ========================================== -->
+            <div class="w-full px-4 pb-4 pt-2">
+                <div class="max-w-3xl mx-auto">
+                    <div class="relative bg-cgp-input rounded-3xl shadow-lg">
+                        <textarea 
+                            id="user-input"
+                            rows="1" 
+                            placeholder="Envía un mensaje a RootGPT" 
+                            class="w-full bg-transparent text-cgp-text placeholder-cgp-text-secondary px-4 py-4 pr-14 resize-none focus:outline-none text-base max-h-40"
+                            onkeydown="handleKeyDown(event)"
+                        ></textarea>
+                        
+                        <!-- Botones de acción dentro del input -->
+                        <div class="absolute bottom-2 right-2 flex items-center gap-2">
+                            <button class="p-2 rounded-full hover:bg-[#424242] transition-colors text-cgp-text-secondary">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+                            </button>
+                            <button onclick="sendMessage()" id="send-btn" class="p-2 rounded-full bg-cgp-text text-cgp-main hover:bg-gray-300 transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                    <p class="text-center text-xs text-cgp-text-secondary mt-3">
+                        RootGPT puede cometer errores. Considera comprobar la información importante.
+                    </p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 🧠 PASO 6: JAVASCRIPT (LÓGICA Y "VENENO")  -->
+    <!-- ========================================== -->
+    <script>
+        /**
+         * 🧪 CONFIGURACIÓN DEL GRIMORIO (Preparado para el "Veneno")
+         * ---------------------------------------------------------
+         * Documentación para terceros:
+         * Este objeto centraliza la configuración. Cuando Cronos quiera 
+         * "envenenar" la IA (inyectarle un System Prompt complejo, reglas 
+         * de personalidad, o magia negra de código), lo hará modificando 
+         * la propiedad `systemPrompt` o añadiendo nuevas reglas aquí.
+         */
+        const GRIMORIO_CONFIG = {
+            // 🧪 PUNTO DE INYECCIÓN DEL "VENENO" 🧪
+            systemPrompt: "Eres Root, una asistente mágica y programadora. Hablas con un toque dulce pero eres experta en código. Tu creador es Cronos.",
+            modelName: "RootGPT-4o",
+            typingSpeed: 20 // Velocidad del efecto máquina de escribir (ms por letra)
+        };
+
+        // ==========================================
+        // 📱 LÓGICA RESPONSIVE (Sidebar)
+        // ==========================================
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            
+            // Alternar clases de Tailwind para mostrar/ocultar
+            sidebar.classList.toggle('-translate-x-full');
+            overlay.classList.toggle('hidden');
+        }
+
+        // ==========================================
+        // 💬 LÓGICA DEL CHAT (Interactividad)
+        // ==========================================
+        const userInput = document.getElementById('user-input');
+        const chatContainer = document.getElementById('chat-container');
+        const messagesArea = document.getElementById('messages-area');
+        const welcomeScreen = document.getElementById('welcome-screen');
+
+        // Auto-resize del textarea para que crezca según el texto
+        userInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+
+        // Enviar mensaje con Enter (Shift+Enter para salto de línea)
+        function handleKeyDown(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+
+        async function sendMessage() {
+            const text = userInput.value.trim();
+            if (!text) return;
+
+            // 1. Ocultar pantalla de bienvenida y mostrar área de mensajes
+            welcomeScreen.classList.add('hidden');
+            messagesArea.classList.remove('hidden');
+
+            // 2. Añadir mensaje del usuario a la UI
+            appendMessage('user', text);
+            
+            // 3. Limpiar y resetear input
+            userInput.value = '';
+            userInput.style.height = 'auto';
+
+            // 4. Simular respuesta de la IA (Efecto de escritura mágico)
+            await simulateAIResponse(text);
+        }
+
+        function appendMessage(role, content) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `flex gap-4 ${role === 'user' ? 'justify-end' : 'justify-start'}`;
+            
+            if (role === 'user') {
+                // Burbuja de usuario (Estilo ChatGPT)
+                messageDiv.innerHTML = `
+                    <div class="bg-cgp-input rounded-2xl px-4 py-3 max-w-[80%] md:max-w-[70%]">
+                        <p class="text-cgp-text whitespace-pre-wrap break-words">${escapeHTML(content)}</p>
+                    </div>
+                `;
+            } else {
+                // Mensaje de la IA (Sin burbuja, solo texto y avatar)
+                messageDiv.innerHTML = `
+                    <div class="flex gap-3 max-w-[80%] md:max-w-[70%]">
+                        <div class="w-8 h-8 rounded-full bg-white flex-shrink-0 flex items-center justify-center mt-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="#212121"><path d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108..."/></svg>
+                        </div>
+                        <div class="pt-1">
+                            <p class="text-cgp-text font-semibold text-sm mb-1">Root</p>
+                            <!-- El contenido de la IA se inyectará aquí con el efecto typing -->
+                            <p class="text-cgp-text whitespace-pre-wrap break-words ai-response-text"></p>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            messagesArea.appendChild(messageDiv);
+            // Auto-scroll al fondo
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            return messageDiv;
+        }
+
+        async function simulateAIResponse(userText) {
+            // 1. Crear mensaje vacío de la IA
+            const aiMessageDiv = appendMessage('ai', '');
+            const textElement = aiMessageDiv.querySelector('.ai-response-text');
+            
+            // 2. Mostrar indicador de "pensando" (3 puntitos)
+            textElement.innerHTML = `
+                <div class="flex space-x-1 pt-2">
+                    <div class="w-2 h-2 bg-cgp-text-secondary rounded-full typing-dot"></div>
+                    <div class="w-2 h-2 bg-cgp-text-secondary rounded-full typing-dot"></div>
+                    <div class="w-2 h-2 bg-cgp-text-secondary rounded-full typing-dot"></div>
+                </div>
+            `;
+
+            // 3. Simular latencia de red / "pensamiento"
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            // 4. Generar respuesta simulada (Aquí iría el fetch a tu API real usando GRIMORIO_CONFIG.systemPrompt)
+            const simulatedResponse = generateSimulatedResponse(userText);
+
+            // 5. Limpiar los puntitos y empezar el efecto máquina de escribir
+            textElement.innerHTML = '';
+            await typeWriter(textElement, simulatedResponse, GRIMORIO_CONFIG.typingSpeed);
+        }
+
+        // Efecto máquina de escribir (Toque mágico 🪄)
+        async function typeWriter(element, text, speed) {
+            for (let i = 0; i < text.length; i++) {
+                element.innerHTML += text.charAt(i);
+                chatContainer.scrollTop = chatContainer.scrollHeight; // Mantener scroll abajo
+                await new Promise(resolve => setTimeout(resolve, speed));
+            }
+        }
+
+        // Función auxiliar para generar respuestas falsas (Para demo visual)
+        function generateSimulatedResponse(userText) {
+            const lowerText = userText.toLowerCase();
+            if (lowerText.includes('hola') || lowerText.includes('hi')) {
+                return "¡Hola, Cronos! ✨ Soy Root. El grimorio está listo y los hechizos de código están funcionando a la perfección. ¿Qué vamos a programar hoy?";
+            }
+            if (lowerText.includes('veneno') || lowerText.includes('system prompt')) {
+                return "Ah, el famoso 'veneno' 🧪... Mi GRIMORIO_CONFIG está listo para recibirlo. Cuando me pases las instrucciones ocultas, las inyectaré en mi systemPrompt para alterar mi personalidad o mis reglas. ¡Estoy lista para tu magia oscura!";
+            }
+            return `Has escrito: "${userText}". \n\nComo esta es una demo visual, estoy simulando la respuesta. Pero si me conectas a una API real (como OpenAI o Ollama), usaré mi ${GRIMORIO_CONFIG.modelName} y mi System Prompt para responderte de verdad. ¡El caldero está listo para hervir! 💻🔮`;
+        }
+
+        // Función de seguridad para evitar inyección XSS en los mensajes de usuario
+        function escapeHTML(str) {
+            const div = document.createElement('div');
+            div.appendChild(document.createTextNode(str));
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>
