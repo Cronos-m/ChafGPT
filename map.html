@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Map</title>
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-map-192.png">
+    <link rel="manifest" href="/manifest-map.json">
+    <meta name="theme-color" content="#000000">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Maps">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        html, body { height: 100%; margin: 0; background: #000; }
+        #map { position: fixed; inset: 0; background: #000; }
+        #waiting {
+            position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+            color: #666; font-family: 'Inter', system-ui, sans-serif; font-size: 1.25rem; letter-spacing: 0.2em;
+        }
+        #caption {
+            position: fixed; left: 0; right: 0; bottom: 24px; text-align: center;
+            color: #fff; font-family: 'Inter', system-ui, sans-serif; font-size: 1.1rem;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.8); pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <div id="waiting">EN ESPERA</div>
+    <div id="caption"></div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCwwvgr5C13QZDWb2Bxa1aFf-57YaYrt1c",
+            authDomain: "chafgptest.firebaseapp.com",
+            databaseURL: "https://chafgptest-default-rtdb.firebaseio.com",
+            projectId: "chafgptest",
+            storageBucket: "chafgptest.firebasestorage.app",
+            messagingSenderId: "853295467331",
+            appId: "1:853295467331:web:ebfd40b69e11db09a3bdf6",
+            measurementId: "G-DDRR5RZE5W"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // Misma lógica de sala que index.html
+        function sanitizeRoom(r) { return (r || '').replace(/[.#$/\[\]]/g, '').trim(); }
+        function resolveRoom() {
+            const params = new URLSearchParams(location.search);
+            let r = sanitizeRoom(params.get('s') || params.get('sala') || location.hash.replace(/^#\/?/, ''));
+            if (!r) r = sanitizeRoom(localStorage.getItem('rootgpt-room')) || 'principal';
+            localStorage.setItem('rootgpt-room', r);
+            return r;
+        }
+        const roomId = resolveRoom();
+
+        let map = null, marker = null;
+
+        function showEvent(ev) {
+            document.getElementById('waiting').style.display = 'none';
+            if (!map) {
+                map = L.map('map', { zoomControl: false, attributionControl: false }).setView([ev.lat, ev.lng], 12);
+                L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
+                marker = L.marker([ev.lat, ev.lng]).addTo(map);
+            } else {
+                map.setView([ev.lat, ev.lng], 12);
+                marker.setLatLng([ev.lat, ev.lng]);
+            }
+            document.getElementById('caption').textContent = ev.query || '';
+        }
+
+        onValue(ref(db, 'rooms/' + roomId + '/config/mapEvent'), (s) => {
+            const ev = s.val();
+            if (ev && ev.lat != null && ev.lng != null) showEvent(ev);
+        });
+    </script>
+</body>
+</html>
